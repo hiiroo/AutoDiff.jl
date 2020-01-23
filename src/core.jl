@@ -2,7 +2,7 @@
     All rights reserved. Ali Mert Ceylan 2020
 =#
 
-import Base: +, /, -, *, convert, promote_rule, length, size, ndims, getindex, setindex!, similar, broadcasted, broadcastable
+import Base: +, -, *, /, ^, convert, promote_rule, length, size, ndims, getindex, setindex!, similar, broadcasted, broadcastable
 
 """
     unbroadcast(x,dx)
@@ -55,6 +55,7 @@ end
 -(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
 *(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] * y.f[1], (dy)->(x.f[2](dy*y.f[1]'), y.f[2](x.f[1]'*dy)))
 /(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1] / y.f[1], (dy)->(x.f[2](dy/y.f[1]), y.f[2]((-dy*x.f[1])/(y.f[2]^2))))
+^(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy*(y.f[1])*x.f[1]^(y.f[1]-1))), y.f[2](dy*y.f[1]*log(x.f[1]))))
 
 convert(::Type{BD}, x::T) where T <: Union{Number, AbstractArray} = BD{T}(x)
 promote_rule(::Type{BD}, ::Type{T}) where T <: Number = BD{T}
@@ -78,3 +79,5 @@ broadcasted(::typeof(*), x::BD{U}, y::BD{T}) where {T <: Number, U <: AbstractAr
 
 broadcasted(::typeof(/), x::BD{T}, y::BD{U}) where {T <: Number, U <: AbstractArray} = BD{U}(x.f[1]./y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy./y.f[1])),  y.f[2](unbroadcast(y.f[1], (-dy.*x.f[1])./abs2.(y.f[2])))))
 broadcasted(::typeof(/), x::BD{U}, y::BD{T}) where {T <: Number, U <: AbstractArray} = BD{U}(x.f[1]./y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy./y.f[1])),  y.f[2](unbroadcast(y.f[1], (-dy.*x.f[1])./abs2.(y.f[2])))))
+
+broadcasted(::typeof(^), x::BD{T}, y::BD{T}) where {T <: Number} = BD{T}(x.f[1].^y.f[1], (dy)->(x.f[2]((dy.*(y.f[1]).*x.^(y.f[1].-1))), y.f[2](dy.*y.f[1].*log.(x.f[1]))))

@@ -22,6 +22,7 @@ export
     -,
     *,
     /,
+    ^,
     sum,
     abs2,
     params,
