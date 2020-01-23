@@ -1,0 +1,4 @@
+name = "AutoDiff"
+uuid = "87d66b72-4fb9-4d22-ac15-1dba862bf296"
+authors = ["Ali Ceylan <alimrtcyln@gmail.com>"]
+version = "0.1.0"
