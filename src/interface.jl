@@ -16,6 +16,8 @@ function flat(ra)
     end
 end
 
+params(xs) = Dict(flat(xs))
+
 macro differentiate(e)
     args = e.args
 

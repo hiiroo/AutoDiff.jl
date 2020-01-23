@@ -24,6 +24,7 @@ export
     /,
     sum,
     abs2,
-    differentiate
+    params,
+    @differentiate
 
 end # module
