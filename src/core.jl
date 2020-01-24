@@ -51,22 +51,41 @@ function BD{V}(v1::V, v2) where V <: Union{Number, AbstractArray}
     return BD{V}((v1, v2))
 end
 
-+(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] + y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
--(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
-*(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] * y.f[1], (dy)->(x.f[2](dy*y.f[1]'), y.f[2](x.f[1]'*dy)))
-/(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1] / y.f[1], (dy)->(x.f[2](dy/y.f[1]), y.f[2]((-dy*x.f[1])/(y.f[2]^2))))
-^(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy*(y.f[1])*x.f[1]^(y.f[1]-1))), y.f[2](dy*y.f[1]*log(x.f[1]))))
+convert(::Type{BD}, x::U) where U <: Number = BD{U}(convert(U, x))
+convert(::Type{BD{T}}, x::U) where {T <: Number, U <: Number} = BD{T}(convert(T, x))
 
-convert(::Type{BD}, x::T) where T <: Union{Number, AbstractArray} = BD{T}(x)
-promote_rule(::Type{BD}, ::Type{T}) where T <: Number = BD{T}
+promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Number, U <: Number} = BD{promote_rule(T, U) <: Union ? T : promote_rule(T, U)}
+promote_rule(::Type{BD{T}}, ::Type{T}) where T <: AbstractArray = BD{T}
+
 ndims(bd::BD) = ndims(bd.f[1])
 size(bd::BD) = size(bd.f[1])
 getindex(bd::BD, i) = getindex(bd.f[1], i)
 setindex!(bd::BD, i) = setindex!(bd.f[1], i)
 
 length(bd::BD{T}) where T <: AbstractArray = length(bd.f[1])
-similar(bd::BD{T}) where T <: Number = BD{eltype(bd)}(0)
-similar(bd::BD{T}) where T <: AbstractArray = BD{eltype(bd)}(zeros(size(bd)))
+similar(bd::BD{T}) where T <: Number = BD{T}(zero(T))
+similar(bd::BD{T}) where T <: AbstractArray = BD{T}(zeros(size(bd)))
+
++(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] + y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
+-(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
+*(x::BD{T}, y::BD{T}) where T <: Union{Number, AbstractArray} = BD{T}(x.f[1] * y.f[1], (dy)->(x.f[2](dy*y.f[1]'), y.f[2](x.f[1]'*dy)))
+/(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1] / y.f[1], (dy)->(x.f[2](dy/y.f[1]), y.f[2]((-dy*x.f[1])/(y.f[2]^2))))
+^(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy*(y.f[1])*x.f[1]^(y.f[1]-1))), y.f[2](dy*y.f[1]*log(x.f[1]))))
+
++(x::BD{T}, y::U) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = +(promote(x,y)...)
++(x::T, y::BD{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = +(promote(x,y)...)
+
+*(x::BD{T}, y::U) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = *(promote(x,y)...)
+*(x::T, y::BD{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = *(promote(x,y)...)
+
+-(x::BD{T}, y::U) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = -(promote(x,y)...)
+-(x::T, y::BD{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = -(promote(x,y)...)
+
+/(x::BD{T}, y::U) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = /(promote(x,y)...)
+/(x::T, y::BD{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = /(promote(x,y)...)
+
+^(x::BD{T}, y::U) where {T <: Number, U <: Number} = ^(promote(x,y)...)
+^(x::T, y::BD{U}) where {T <: Number, U <: Number} = ^(promote(x,y)...)
 
 broadcasted(::typeof(+), x::BD{T}, y::BD{U}) where {T <: Number, U <: AbstractArray} = BD{U}(x.f[1].+y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], dy))))
 broadcasted(::typeof(+), x::BD{U}, y::BD{T}) where {T <: Number, U <: AbstractArray} = BD{U}(x.f[1].+y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], dy))))
