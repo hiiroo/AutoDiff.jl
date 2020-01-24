@@ -2,7 +2,7 @@
     All rights reserved. Ali Mert Ceylan 2020
 =#
 
-import Base: +, -, *, /, ^, convert, promote_rule, length, size, ndims, getindex, setindex!, similar, broadcasted, broadcastable
+import Base: +, -, *, /, ^, convert, promote_rule, length, size, ndims, getindex, setindex!, similar, broadcasted
 
 """
     unbroadcast(x,dx)
@@ -54,7 +54,7 @@ end
 convert(::Type{BD}, x::U) where U <: Number = BD{U}(convert(U, x))
 convert(::Type{BD{T}}, x::U) where {T <: Number, U <: Number} = BD{T}(convert(T, x))
 
-promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Number, U <: Number} = BD{promote_rule(T, U) <: Union ? T : promote_rule(T, U)}
+promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Number, U <: Number} = BD{promote_type(T, U)}
 promote_rule(::Type{BD{T}}, ::Type{T}) where T <: AbstractArray = BD{T}
 
 ndims(bd::BD) = ndims(bd.f[1])
