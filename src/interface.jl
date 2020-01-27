@@ -3,6 +3,7 @@
 =#
 
 import Base: abs2, sum
+import LinearAlgebra: adjoint, transpose
 
 function flat(ra)
     if (!(typeof(ra) <: Pair))
@@ -35,3 +36,6 @@ end
 
 abs2(b::BD{T}) where T <: AbstractArray = abs2(b.f[1], (dy)->(b.f[2](dy.*2b.f[1])))
 broadcasted(::typeof(abs2), b::BD{T}) where T <: AbstractArray = BD{T}(abs2.(b.f[1]), (dy)->(b.f[2](dy.*2b.f[1])))
+
+transpose(b::BD{T}) where T <: AbstractArray = BD{T}(transpose(b.f[1]), (dy)->(transpose(dy)))
+adjoint(b::BD{T}) where T <: AbstractArray = BD{T}(adjoint(b.f[1]), (dy)->(adjoint(dy)))
