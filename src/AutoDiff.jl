@@ -1,6 +1,5 @@
-#=
-    All rights reserved. Ali Mert Ceylan 2020
-=#
+#= 
+    All rights reserved. Ali Mert Ceylan 2020 =#
 
 module AutoDiff
 
@@ -24,7 +23,12 @@ export
     /,
     ^,
     sum,
+    mean,
     abs2,
+    transpose,
+    adjoint,
+    inv,
+    det,
     params,
     @differentiate
 
