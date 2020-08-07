@@ -24,7 +24,7 @@ macro differentiate(e)
 
     local varname = string(args[1])
     local var = args[1]
-    local val = eval(args[2])
+    local val = args[2]
 
     esc(:($var = BD{typeof($val)}($val, Symbol("d$(string($varname))"), )))
 end
@@ -40,7 +40,7 @@ function mean(bd::BD{T}; kwargs...) where T <: AbstractArray
     return BD{typeof(s)}(s, (dy)->(bd.f[2](dy .* ones(size(bd.f[1])) ./ length(bd.f[1]))))# dy.*ones(size(bd.f[1]))./length(bd.f[1])
 end
 
-abs2(b::BD{T}) where T <: AbstractArray = abs2(b.f[1], (dy)->(b.f[2](dy .* 2b.f[1])))
+abs2(b::BD{T}) where T <: AbstractArray = BD{T}(abs2(b.f[1]), (dy)->(b.f[2](dy .* 2b.f[1])))
 broadcasted(::typeof(abs2), b::BD{T}) where T <: AbstractArray = BD{T}(abs2.(b.f[1]), (dy)->(b.f[2](dy .* 2b.f[1])))
 
 transpose(b::BD{T}) where T <: AbstractArray = BD{T}(transpose(b.f[1]), (dy)->(transpose(dy)))
