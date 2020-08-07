@@ -40,7 +40,7 @@ function mean(bd::BD{T}; kwargs...) where T <: AbstractArray
     return BD{typeof(s)}(s, (dy)->(bd.f[2](dy .* ones(size(bd.f[1])) ./ length(bd.f[1]))))# dy.*ones(size(bd.f[1]))./length(bd.f[1])
 end
 
-abs2(b::BD{T}) where T <: AbstractArray = BD{T}(abs2(b.f[1]), (dy)->(b.f[2](dy .* 2b.f[1])))
+abs2(b::BD{T}) where T <: Number = BD{T}(abs2(b.f[1]), (dy)->(b.f[2](dy * 2b.f[1])))
 broadcasted(::typeof(abs2), b::BD{T}) where T <: AbstractArray = BD{T}(abs2.(b.f[1]), (dy)->(b.f[2](dy .* 2b.f[1])))
 
 transpose(b::BD{T}) where T <: AbstractArray = BD{T}(transpose(b.f[1]), (dy)->(transpose(dy)))
