@@ -2,6 +2,7 @@
     All rights reserved. Ali Mert Ceylan 2020 =#
 
 import Base: +, -, *, /, ^, convert, promote_rule, length, size, ndims, getindex, setindex!, similar, iterate, broadcasted
+using LinearAlgebra
 
 """
     unbroadcast(x,dx)
@@ -52,9 +53,14 @@ end
 
 convert(::Type{BD}, x::U) where U <: Number = BD{U}(convert(U, x))
 convert(::Type{BD{T}}, x::U) where {T <: Number,U <: Number} = BD{T}(convert(T, x))
+convert(::Type{BD{T}}, x::T) where {T <: AbstractArray} = BD{T}(x)
+convert(::Type{BD{T}}, x::BD{U}) where {T <: AbstractArray, U <: Hermitian} = BD{T}(convert(T, x.f[1]), x.f[2])
 
-promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Number,U <: Number} = BD{promote_type(T, U)}
-promote_rule(::Type{BD{T}}, ::Type{T}) where T <: AbstractArray = BD{T}
+promote_rule(::Type{T}, ::Type{U}) where {T <: Hermitian, U <: AbstractArray} = U
+promote_rule(::Type{U}, ::Type{T}) where {T <: Hermitian, U <: AbstractArray} = U
+promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = BD{promote_type(T, U)}
+promote_rule(::Type{BD{T}}, ::Type{BD{U}}) where {T, U} = BD{promote_rule(T, U)}
+
 
 ndims(bd::BD) = ndims(bd.f[1])
 length(bd::BD) = length(bd.f[1])
