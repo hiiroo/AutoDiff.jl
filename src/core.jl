@@ -56,9 +56,15 @@ convert(::Type{BD{T}}, x::U) where {T <: Number,U <: Number} = BD{T}(convert(T, 
 convert(::Type{BD{T}}, x::T) where {T <: AbstractArray} = BD{T}(x)
 convert(::Type{BD{T}}, x::BD{U}) where {T <: AbstractArray, U <: Hermitian} = BD{T}(convert(T, x.f[1]), x.f[2])
 
+promote_rule(::Type{BD}, x::T) where {T} = BD{T}(x)
+promote_rule(x::T, ::Type{BD}) where {T} = BD{T}(x)
+
 promote_rule(::Type{T}, ::Type{U}) where {T <: Hermitian, U <: AbstractArray} = U
 promote_rule(::Type{U}, ::Type{T}) where {T <: Hermitian, U <: AbstractArray} = U
-promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = BD{promote_type(T, U)}
+# promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = BD{promote_type(T, U)}
+promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Number,U <: Number} = BD{promote_type(T, U)}
+promote_rule(::Type{BD{T}}, ::Type{T}) where T <: AbstractArray = BD{T}
+
 promote_rule(::Type{BD{T}}, ::Type{BD{U}}) where {T, U} = BD{promote_rule(T, U)}
 
 
@@ -110,3 +116,8 @@ broadcasted(::typeof(/), x::BD{T}, y::BD{U}) where {T <: Number,U <: AbstractArr
 broadcasted(::typeof(/), x::BD{U}, y::BD{T}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] ./ y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy ./ y.f[1])),  y.f[2](unbroadcast(y.f[1], (-dy .* x.f[1]) ./ abs2.(y.f[2])))))
 
 broadcasted(::typeof(^), x::BD{T}, y::BD{T}) where {T <: Number} = BD{T}(x.f[1].^y.f[1], (dy)->(x.f[2]((dy .* (y.f[1]) .* x.^(y.f[1] .- 1))), y.f[2](dy .* y.f[1] .* log.(x.f[1]))))
+
+broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::T, y::BD{U}) where {T <: Number, U <: AbstractArray} = broadcasted(o, BD{T}(x), y)
+broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::BD{T}, y::U) where {T <: Number, U <: AbstractArray} = broadcasted(o, x, BD{U}(y))
+broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::T, y::BD{U}) where {T <: AbstractArray, U <: Number} = broadcasted(o, BD{T}(x), y)
+broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::BD{T}, y::U) where {T <: AbstractArray, U <: Number} = broadcasted(o, x, BD{U}(y))
