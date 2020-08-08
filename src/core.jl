@@ -53,16 +53,19 @@ end
 
 convert(::Type{BD}, x::U) where U <: Number = BD{U}(convert(U, x))
 convert(::Type{BD{T}}, x::U) where {T <: Number,U <: Number} = BD{T}(convert(T, x))
+convert(::Type{BD{T}}, x::BD{U}) where {T, U} = BD{T}(convert(T, x.f[1]), x.f[2])
+
 convert(::Type{BD{T}}, x::T) where {T <: AbstractArray} = BD{T}(x)
 convert(::Type{BD{T}}, x::BD{U}) where {T <: AbstractArray, U <: Hermitian} = BD{T}(convert(T, x.f[1]), x.f[2])
 
 promote_rule(::Type{BD}, x::T) where {T} = BD{T}(x)
 promote_rule(x::T, ::Type{BD}) where {T} = BD{T}(x)
 
+promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Number,U <: Number} = BD{promote_type(T, U)}
+
 promote_rule(::Type{T}, ::Type{U}) where {T <: Hermitian, U <: AbstractArray} = U
 promote_rule(::Type{U}, ::Type{T}) where {T <: Hermitian, U <: AbstractArray} = U
 # promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = BD{promote_type(T, U)}
-promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Number,U <: Number} = BD{promote_type(T, U)}
 promote_rule(::Type{BD{T}}, ::Type{T}) where T <: AbstractArray = BD{T}
 
 promote_rule(::Type{BD{T}}, ::Type{BD{U}}) where {T, U} = BD{promote_rule(T, U)}
@@ -71,8 +74,11 @@ promote_rule(::Type{BD{T}}, ::Type{BD{U}}) where {T, U} = BD{promote_rule(T, U)}
 ndims(bd::BD) = ndims(bd.f[1])
 length(bd::BD) = length(bd.f[1])
 size(bd::BD) = size(bd.f[1])
-getindex(bd::BD{T}, i::Int) where T <: AbstractArray = BD{eltype(T)}(getindex(bd.f[1], i), (dy)->(dyi = zeros(size(bd)); dyi[i] = dy; bd.f[2](dyi)))
+
+getindex(bd::BD{T}, i::Int) where {T <: Number} = BD{eltype(T)}(getindex(bd.f[1], i))
+getindex(bd::BD{T}, i::Int) where {T <: AbstractArray} = BD{eltype(T)}(getindex(bd.f[1], i), (dy)->(dyi = zeros(size(bd)); dyi[i] = dy; bd.f[2](dyi)))
 getindex(bd::BD{<:AbstractArray}, i) = BD{Array}(getindex(bd.f[1], i), (dy)->(dyi = zeros(size(bd)); dyi[i] .= dy; bd.f[2](dyi)))#
+
 setindex!(bd::BD, v, i) = setindex!(bd.f[1], v, i)
 setindex!(bd::BD, v, i::Vararg{Bool}) = setindex!(bd.f[1], i...)
 
@@ -80,7 +86,7 @@ length(bd::BD{T}) where T <: AbstractArray = length(bd.f[1])
 similar(bd::BD{T}) where T <: Number = BD{T}(zero(T))
 similar(bd::BD{T}) where T <: AbstractArray = BD{T}(zeros(size(bd)))
 
-iterate(bd::BD{<:AbstractArray}, state = 1) = state <= length(bd) ? (bd[state], state + 1) : nothing
+iterate(bd::BD{<:Union{Number, AbstractArray}}, state = 1) = state <= length(bd) ? (bd[state], state + 1) : nothing
 
 +(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] + y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
 -(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
