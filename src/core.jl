@@ -68,7 +68,8 @@ promote_rule(::Type{U}, ::Type{T}) where {T <: Hermitian, U <: AbstractArray} = 
 # promote_rule(::Type{BD{T}}, ::Type{U}) where {T <: Union{Number, AbstractArray}, U <: Union{Number, AbstractArray}} = BD{promote_type(T, U)}
 promote_rule(::Type{BD{T}}, ::Type{T}) where T <: AbstractArray = BD{T}
 
-promote_rule(::Type{BD{T}}, ::Type{BD{U}}) where {T, U} = BD{promote_rule(T, U)}
+promote_rule(::Type{BD{T}}, ::Type{BD{U}}) where {T, U} = BD{promote_type(T, U)}
+# promote_rule(::Type{BD{T}}, ::Type{BD{U}}) where {T<:Number, U<:Number} = BD{promote_type(T, U)}
 
 
 ndims(bd::BD) = ndims(bd.f[1])
@@ -89,10 +90,10 @@ similar(bd::BD{T}) where T <: AbstractArray = BD{T}(zeros(size(bd)))
 iterate(bd::BD{<:Union{Number, AbstractArray}}, state = 1) = state <= length(bd) ? (bd[state], state + 1) : nothing
 
 +(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] + y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
--(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
+-(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), -y.f[2](dy)))
 *(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] * y.f[1], (dy)->(x.f[2](dy * y.f[1]'), y.f[2](x.f[1]' * dy)))
-/(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1] / y.f[1], (dy)->(x.f[2](dy / y.f[1]), y.f[2]((-dy * x.f[1]) / (y.f[2]^2))))
-^(x::BD{T}, y::BD{T}) where T <: Number = BD{T}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy * (y.f[1]) * x.f[1]^(y.f[1] - 1))), y.f[2](dy * y.f[1] * log(x.f[1]))))
+/(x::BD{T}, y::BD{T}) where T <: Number = BD{Float64}(x.f[1] / y.f[1], (dy)->(x.f[2](dy / y.f[1]), y.f[2]((-dy * x.f[1]) / (y.f[1]^2))))
+^(x::BD{T}, y::BD{U}) where {T <: Number, U <: Number} = BD{promote_type(T, U)}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy * (y.f[1]) * x.f[1]^(y.f[1] - 1))), y.f[2](dy * y.f[1] * log(x.f[1]))))
 
 +(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = +(promote(x, y)...)
 +(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = +(promote(x, y)...)
