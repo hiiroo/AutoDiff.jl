@@ -1,41 +1,30 @@
 
 
-function _number_bdnumber()
-    
+using Test
+
+@testset "number_promotions" begin
+    @test promote_type(Int, BD{Int}) == BD{Int64}
+    @test promote_type(BD{Int}, Int) == BD{Int64}
+
+    @test promote_type(Float64, BD{Float64}) == BD{Float64}
+    @test promote_type(BD{Float64}, Float64) == BD{Float64}
 end
 
-function _bdnumber_number()
-    
+@testset "wrapped_number_promotions" begin
+    @test promote_type(BD{Int}, BD{Float64}) == BD{Float64}
+    @test promote_type(BD{Float64}, BD{Int}) == BD{Float64}
 end
 
-function _bdint_bdfloat()
-    
-end
+@testset "wrappedarray_number_promotions" begin
+    @test promote_type(BD{Array{Int}}, Int) == Any
+    @test promote_type(BD{Int}, Array{Int}) == Any
 
-function _bdfloat_bdint()
-    
-end
+    @test promote_type(BD{Array{Float64}}, Float64) == Any
+    @test promote_type(BD{Float64}, Array{Float64}) == Any
 
-function _bdarrayint_int()
-    
-end
+    @test promote_type(BD{Array{Float64}}, Int) == Any
+    @test promote_type(Array{Float64}, BD{Int}) == Any
 
-function _bdnumberint_arrayint()
-    
-end
-
-function _bdarrayfloat_int()
-    
-end
-
-function _arrayfloat_bdint()
-    
-end
-
-function _bdarrayint_float()
-    
-end
-
-function _bdarrayfloat_arrayint()
-    
+    @test promote_type(BD{Array{Int}}, BD{Float64}) == Any
+    @test promote_type(BD{Array{Float64}}, BD{Array{Int}}) == BD{Array{Float64}}
 end
