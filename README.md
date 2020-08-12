@@ -1,6 +1,8 @@
 # AutoDiff
 
-AutoDiff.jl is a basic reverse differentiation package inspired by the talk of Prof. Edelman. Similar to DualNumbers, AutoDiff provides the type BD. BD can be considered as back-derivation. After every operation, a tuple of the result of the operation and the reverse function which will provide gradients w.r.t inputs of the operation.
+> Disclaimer: In its current state, this package may not meet requirements of general user.
+
+AutoDiff.jl is a basic reverse differentiation package inspired by the talk of Prof. Edelman. Similar to DualNumbers, AutoDiff provides the type BD. BD~~~~ can be considered as back-derivation. After every operation, a tuple of the result of the operation and the reverse function which will provide gradients w.r.t inputs of the operation.
 
 ```julia
 using AutoDiff
@@ -41,4 +43,3 @@ grads(rest)
 ```
 
 You may check the example folder, there are jupyter notebooks with basic usage.
-
