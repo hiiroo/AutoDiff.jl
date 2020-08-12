@@ -6,15 +6,17 @@ import Statistics: mean
 import LinearAlgebra: adjoint, transpose, det
 
 function flat(ra)
-    if (!(typeof(ra) <: Pair))
-        ta = []
-        for a in ra
-            append!(ta, flat(a))
-        end
-        return ta
-    else 
+    if(typeof(ra) <: Pair)
         return [ra]
     end
+
+    ta = []
+    for a in ra
+        if(!(typeof(a) <: Number))
+            append!(ta, flat(a))
+        end
+    end
+    return ta
 end
 
 params(xs) = Dict(flat(xs))
