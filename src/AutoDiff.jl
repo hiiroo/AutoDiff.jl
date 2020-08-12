@@ -3,6 +3,8 @@
 
 module AutoDiff
 
+using DiffRules
+
 include("core.jl")
 include("interface.jl")
 
