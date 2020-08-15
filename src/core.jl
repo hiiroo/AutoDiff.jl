@@ -122,7 +122,7 @@ iterate(bd::BD{<:Union{Number, AbstractArray}}, state = 1) = state <= length(bd)
 -(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), -y.f[2](dy)))
 *(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] * y.f[1], (dy)->(x.f[2](dy * y.f[1]'), y.f[2](x.f[1]' * dy)))
 /(x::BD{T}, y::BD{T}) where T <: Number = BD{Float64}(x.f[1] / y.f[1], (dy)->(x.f[2](dy / y.f[1]), y.f[2]((-dy * x.f[1]) / (y.f[1]^2))))
-^(x::BD{T}, y::BD{U}) where {T <: Number, U <: Number} = BD{promote_type(T, U)}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy * (y.f[1]) * x.f[1]^(y.f[1] - 1))), y.f[2](dy * y.f[1] * log(x.f[1]))))
+^(x::BD{T}, y::BD{U}) where {T <: Number, U <: Number} = BD{promote_type(T, U)}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy * (y.f[1]) * x.f[1]^(y.f[1] - 1))), y.f[2](dy * x.f[1]^y.f[1] * log(x.f[1]))))
 
 +(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = +(promote(x, y)...)
 +(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = +(promote(x, y)...)
