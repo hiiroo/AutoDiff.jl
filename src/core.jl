@@ -58,7 +58,7 @@ function BD{V}(v1::V, v2) where V <: Union{Number,AbstractArray}
 end
 
 function BD(v1::V, v2) where V <: Union{Number,AbstractArray}
-    return BD{typeof(V)}((v1, v2))
+    return BD{typeof(v1)}((v1, v2))
 end
 
 value(x::BD) = x.f[1]
@@ -102,25 +102,24 @@ similar(bd::BD{T}) where T <: AbstractArray = BD{T}(zeros(size(bd)))
 
 iterate(bd::BD{<:Union{Number, AbstractArray}}, state = 1) = state <= length(bd) ? (bd[state], state + 1) : nothing
 
-# +(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] + y.f[1], (dy)->(x.f[2](dy), y.f[2](dy)))
-# -(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] - y.f[1], (dy)->(x.f[2](dy), -y.f[2](dy)))
-# *(x::BD{T}, y::BD{T}) where T <: Union{Number,AbstractArray} = BD{T}(x.f[1] * y.f[1], (dy)->(x.f[2](dy * y.f[1]'), y.f[2](x.f[1]' * dy)))
-# /(x::BD{T}, y::BD{T}) where T <: Number = BD{Float64}(x.f[1] / y.f[1], (dy)->(x.f[2](dy / y.f[1]), y.f[2]((-dy * x.f[1]) / (y.f[1]^2))))
-# ^(x::BD{T}, y::BD{U}) where {T <: Number, U <: Number} = BD{promote_type(T, U)}(x.f[1]^y.f[1], (dy)->(x.f[2]((dy * (y.f[1]) * x.f[1]^(y.f[1] - 1))), y.f[2](dy * y.f[1] * log(x.f[1]))))
 
 for diffrule in DiffRules.diffrules()
     p, f, a = diffrule
     if (a == 1)    
         eval(
             :($(f)(x::BD{T}) where {T} = BD(
-                $(f)(x), 
-                (dy)->dy.*func(DiffRules.diffrule(p, f, :(value(x))))
+                $(f)(value(x)), 
+                (dy)->func(x)(dy.*eval(DiffRules.diffrule(Symbol($(p)), Symbol($(f)), value(x))))
                 )
             )
         )
     elseif (a == 2)
+
         eval(
-            :($(f)(x::BD, y::BD) = BD($(f)(x, y), (dy)->df = DiffRules.diffrule(p, f, :(value(x)), :(value(y))); (func(x)(df[1]), func(y)(df[2]))))
+            :($(f)(x::BD, y::BD) = BD($(f)(value(x), value(y)), (dy)->(
+                    df = DiffRules.diffrule(Symbol($(p)), Symbol($(f)), value(x), value(y)); 
+                    (func(x)(dy*eval(df[1])'), func(y)(eval(df[2])'*dy))
+                )))
             )
         eval(
             :($(f)(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray}, U <: Union{Number,AbstractArray}} = $(f)(promote(x, y)...))
@@ -131,20 +130,6 @@ for diffrule in DiffRules.diffrules()
     end
 end
 
-# +(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = +(promote(x, y)...)
-# +(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = +(promote(x, y)...)
-
-# *(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = *(promote(x, y)...)
-# *(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = *(promote(x, y)...)
-
-# -(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = -(promote(x, y)...)
-# -(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = -(promote(x, y)...)
-
-# /(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = /(promote(x, y)...)
-# /(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray},U <: Union{Number,AbstractArray}} = /(promote(x, y)...)
-
-# ^(x::BD{T}, y::U) where {T <: Number,U <: Number} = ^(promote(x, y)...)
-# ^(x::T, y::BD{U}) where {T <: Number,U <: Number} = ^(promote(x, y)...)
 
 broadcasted(::typeof(+), x::BD{T}, y::BD{U}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .+ y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], dy))))
 broadcasted(::typeof(+), x::BD{U}, y::BD{T}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .+ y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], dy))))
