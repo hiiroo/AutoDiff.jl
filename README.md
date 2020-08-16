@@ -41,7 +41,7 @@ y = sum(abs2.(1.0 .-f(i)))
 
 _dy, _rest = y.f[2](y.f[1])
 
-grads(rest)
+params(_rest)
 ```
 
 You may check the example folder, there are jupyter notebooks with basic usage.
