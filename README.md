@@ -4,7 +4,7 @@
 
 > This package is not registered due to the concern which may not meet requirements of a general user.
 
-AutoDiff.jl is a basic reverse differentiation package inspired by the talk of Prof. Edelman. Similar to DualNumbers, AutoDiff provides the type BD. BD can be considered as back-derivation. After every operation, a tuple of the result of the operation and the reverse function which will provide gradients w.r.t inputs of the operation.
+AutoDiff.jl is a basic reverse differentiation package inspired by the talk of Prof. Edelman. Similar to DualNumbers, AutoDiff provides the type BD. BD can be considered as backward-derivation. After every operation, a tuple of the result of the operation and the reverse function which will provide gradients w.r.t inputs of the operation.
 
 ```julia
 using AutoDiff
@@ -16,7 +16,7 @@ f(x) = x^2
 yfdy = f(a)
 y,fdy=yfdy.f
 
-println(y) # (:da => 6, 2.1972245773362196), since only a is tracked, :da is stored as a pair
+println(y) # (:da => 6), since only a is tracked, :da is stored as a pair
 println(params(fdy(1)))# That will give a dictionary of tracked variables, for this case :da => 6
 ```
 
