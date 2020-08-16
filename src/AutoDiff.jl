@@ -10,6 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 module AutoDiff
 
+using NaNMath
+using SpecialFunctions
+using DiffRules
+
 include("core.jl")
 include("interface.jl")
 

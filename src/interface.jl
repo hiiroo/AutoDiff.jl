@@ -56,7 +56,7 @@ transpose(b::BD{T}) where T <: AbstractArray = BD{T}(transpose(b.f[1]), (dy)->(t
 adjoint(b::BD{T}) where T <: AbstractArray = BD{T}(adjoint(b.f[1]), (dy)->(adjoint(dy)))
 
 # inv(x),dy,y  (yt=y'; -yt*dy*yt) # addtest(:inv, rand(2,2)) # ref https://people.maths.ox.ac.uk/gilesm/files/NA-08-01.pdf 
-inv(b::BD{T}) where T <: AbstractArray = BD{T}(inv(b.f[1]), (dy)->(yt = inv(b.f[1])'; -yt * dy * yt))
+# inv(b::BD{T}) where T <: AbstractArray = BD{T}(inv(b.f[1]), (dy)->(yt = inv(b.f[1])'; -yt * dy * yt))
 
 # det(x),dy,y  dy*y*inv(x)'
 det(b::BD{T}) where T <: AbstractArray = BD{T}(det(b.f[1]), (dy)->(dy * det(b.f[1]) * inv(b.f[1])'))
