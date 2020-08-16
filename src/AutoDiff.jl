@@ -3,6 +3,8 @@
 
 module AutoDiff
 
+using NaNMath
+using SpecialFunctions
 using DiffRules
 
 include("core.jl")

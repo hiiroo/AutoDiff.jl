@@ -105,28 +105,37 @@ iterate(bd::BD{<:Union{Number, AbstractArray}}, state = 1) = state <= length(bd)
 
 for diffrule in DiffRules.diffrules()
     p, f, a = diffrule
+    
     if (a == 1)    
+        
         eval(
-            :($(f)(x::BD{T}) where {T} = BD(
-                $(f)(value(x)), 
+            :($(p).$(f)(x::BD) = BD(
+                $(p).$(f)(value(x)), 
                 (dy)->func(x)(dy.*eval(DiffRules.diffrule(Symbol($(p)), Symbol($(f)), value(x))))
                 )
             )
         )
+
     elseif (a == 2)
 
         eval(
-            :($(f)(x::BD, y::BD) = BD($(f)(value(x), value(y)), (dy)->(
+            :($(p).$(f)(x::BD, y::BD) = BD(
+                $(p).$(f)(value(x), value(y)), 
+                (dy)->(
                     df = DiffRules.diffrule(Symbol($(p)), Symbol($(f)), value(x), value(y)); 
                     (func(x)(dy*eval(df[1])'), func(y)(eval(df[2])'*dy))
-                )))
-            )
+                )
+            ))
+        )
+        
         eval(
             :($(f)(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray}, U <: Union{Number,AbstractArray}} = $(f)(promote(x, y)...))
             )
+        
         eval(
             :($(f)(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray}, U <: Union{Number,AbstractArray}} = $(f)(promote(x, y)...))
             )
+    
     end
 end
 
