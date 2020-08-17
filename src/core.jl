@@ -165,25 +165,35 @@ for diffrule in DiffRules.diffrules()
             :($(f)(x::T, y::BD{U}) where {T <: Union{Number,AbstractArray}, U <: Union{Number,AbstractArray}} = $(f)(promote(x, y)...))
             )
     
+        eval(
+            :(broadcasted(o::typeof($(p).$(f)), x::BD{T}, y::BD{U}) where {T <: Number,U <: AbstractArray} = BD{U}(
+                o.(value(x), value(y)), 
+                (dy)->(func(x)(unbroadcast(value(x), dy)),  func(y)(unbroadcast(value(y), dy)))
+                ))
+            )
+
+        eval(
+            :(broadcasted(o::typeof($(p).$(f)), x::BD{U}, y::BD{T}) where {T <: Number,U <: AbstractArray} = BD{U}(
+                o.(value(x), value(y)), 
+                (dy)->(func(x)(unbroadcast(x.f[1], dy)),  func(y)(unbroadcast(value(y), dy)))
+                ))
+            )
+
+        eval(
+            :(broadcasted(o::typeof($(p).$(f)), x::T, y::BD{U}) where {T <: Number, U <: AbstractArray} = broadcasted(o, BD{T}(x), y))
+            )
+
+        eval(
+            :(broadcasted(o::typeof($(p).$(f)), x::BD{T}, y::U) where {T <: Number, U <: AbstractArray} = broadcasted(o, x, BD{U}(y)))
+            )
+
+        eval(
+            :(broadcasted(o::typeof($(p).$(f)), x::T, y::BD{U}) where {T <: AbstractArray, U <: Number} = broadcasted(o, BD{T}(x), y))
+            )
+
+        eval(
+            :(broadcasted(o::typeof($(p).$(f)), x::BD{T}, y::U) where {T <: AbstractArray, U <: Number} = broadcasted(o, x, BD{U}(y)))
+            )
+            
     end
 end
-
-
-broadcasted(::typeof(+), x::BD{T}, y::BD{U}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .+ y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], dy))))
-broadcasted(::typeof(+), x::BD{U}, y::BD{T}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .+ y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], dy))))
-
-broadcasted(::typeof(-), x::BD{T}, y::BD{U}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .- y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], -dy))))
-broadcasted(::typeof(-), x::BD{U}, y::BD{T}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .- y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy)),  y.f[2](unbroadcast(y.f[1], -dy))))
-
-broadcasted(::typeof(*), x::BD{T}, y::BD{U}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .* y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy .* y.f[1])),  y.f[2](unbroadcast(y.f[1], x.f[1] .* dy))))
-broadcasted(::typeof(*), x::BD{U}, y::BD{T}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] .* y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy .* y.f[1])),  y.f[2](unbroadcast(y.f[1], x.f[1] .* dy))))
-
-broadcasted(::typeof(/), x::BD{T}, y::BD{U}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] ./ y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy ./ y.f[1])),  y.f[2](unbroadcast(y.f[1], (-dy .* x.f[1]) ./ abs2.(y.f[2])))))
-broadcasted(::typeof(/), x::BD{U}, y::BD{T}) where {T <: Number,U <: AbstractArray} = BD{U}(x.f[1] ./ y.f[1], (dy)->(x.f[2](unbroadcast(x.f[1], dy ./ y.f[1])),  y.f[2](unbroadcast(y.f[1], (-dy .* x.f[1]) ./ abs2.(y.f[2])))))
-
-broadcasted(::typeof(^), x::BD{T}, y::BD{T}) where {T <: Number} = BD{T}(x.f[1].^y.f[1], (dy)->(x.f[2]((dy .* (y.f[1]) .* x.^(y.f[1] .- 1))), y.f[2](dy .* y.f[1] .* log.(x.f[1]))))
-
-broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::T, y::BD{U}) where {T <: Number, U <: AbstractArray} = broadcasted(o, BD{T}(x), y)
-broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::BD{T}, y::U) where {T <: Number, U <: AbstractArray} = broadcasted(o, x, BD{U}(y))
-broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::T, y::BD{U}) where {T <: AbstractArray, U <: Number} = broadcasted(o, BD{T}(x), y)
-broadcasted(o::Union{typeof(+), typeof(-), typeof(*), typeof(/), typeof(^)}, x::BD{T}, y::U) where {T <: AbstractArray, U <: Number} = broadcasted(o, x, BD{U}(y))
