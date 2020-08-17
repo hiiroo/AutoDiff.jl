@@ -141,9 +141,9 @@ for diffrule in DiffRules.diffrules()
             :($(p).$(f)(x::BD) = BD(
                 $(p).$(f)(value(x)), 
                 (dy)->func(x)(dy.*eval(DiffRules.diffrule(Symbol($(p)), Symbol($(f)), value(x))))
+                    )
                 )
             )
-        )
 
     elseif (a == 2)
 
@@ -153,9 +153,9 @@ for diffrule in DiffRules.diffrules()
                 (dy)->(
                     df = DiffRules.diffrule(Symbol($(p)), Symbol($(f)), value(x), value(y)); 
                     (func(x)(dy*eval(df[1])'), func(y)(eval(df[2])'*dy))
-                )
-            ))
-        )
+                    )
+                ))
+            )
         
         eval(
             :($(f)(x::BD{T}, y::U) where {T <: Union{Number,AbstractArray}, U <: Union{Number,AbstractArray}} = $(f)(promote(x, y)...))
